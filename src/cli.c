@@ -67,6 +67,43 @@
  */
 CLI_MCB     gCLI;
 
+int32_t hardCodedConfigIndex;
+
+char * hardCodedConfigCommands[] =
+{
+"sensorStop ",
+"flushCfg ",
+"dfeDataOutputMode 1 ",
+"channelCfg 15 7 0",
+"adcCfg 2 1 ",
+"adcbufCfg -1 0 1 1 1 ",
+"profileCfg 0 60.25 7 3 24 0 0 156 1 256 12500 0 0 30 ",
+"chirpCfg 0 0 0 0 0 0 0 1 ",
+"chirpCfg 1 1 0 0 0 0 0 2 ",
+"chirpCfg 2 2 0 0 0 0 0 4 ",
+"frameCfg 0 2 32 0 100 1 0 ",
+"guiMonitor -1 1 1 1 0 0 1 ",
+"cfarCfg -1 0 2 8 4 3 0 15.0 0 ",
+"cfarCfg -1 1 0 4 2 3 1 15.0 0 ",
+"multiObjBeamForming -1 1 0.5 ",
+"calibDcRangeSig -1 0 -5 8 256 ",
+"clutterRemoval -1 0 ",
+"compRangeBiasAndRxChanPhase 0.0 1 0 -1 0 1 0 -1 0 1 0 -1 0 1 0 -1 0 1 0 -1 0 1 0 -1 0",
+"measureRangeBiasAndRxChanPhase 0 1. 0.2 ",
+"aoaFovCfg -1 -90 90 -90 90 ",
+"cfarFovCfg -1 0 0.25 15 ",
+"cfarFovCfg -1 1 -13.39 13.39 ",
+"extendedMaxVelocity -1 0 ",
+"CQRxSatMonitor 0 3 4 63 0 ",
+"CQSigImgMonitor 0 127 4 ",
+"analogMonitor 0 0 ",
+"lvdsStreamCfg -1 0 0 0 ",
+"calibData 0 0 0 ",
+"sensorStart ",
+ "!!!END_OF_HARD_CODED_COMMANDS"
+};
+
+
 /**************************************************************************
  **************************** CLI Functions *******************************
  **************************************************************************/
@@ -130,6 +167,7 @@ static void CLI_task(UArg arg0, UArg arg1)
     int32_t                 cliStatus;
     uint32_t                index;
 
+
     /* Do we have a banner to be displayed? */
     if (gCLI.cfg.cliBanner != NULL)
     {
@@ -137,17 +175,35 @@ static void CLI_task(UArg arg0, UArg arg1)
         CLI_write (gCLI.cfg.cliBanner);
     }
 
+    hardCodedConfigIndex = 0;
+
     /* Loop around forever: */
     while (1)
     {
         /* Demo Prompt: */
         CLI_write (gCLI.cfg.cliPrompt);
 
-        /* Reset the command string: */
-        memset ((void *)&cmdString[0], 0, sizeof(cmdString));
+        if (hardCodedConfigCommands[hardCodedConfigIndex][0] != '!')
+        {
+            CLI_write (hardCodedConfigCommands[hardCodedConfigIndex]);
+            CLI_write ("Command\n");
+            Task_sleep(150);
+            memcpy((void *)&cmdString[0], (void *)hardCodedConfigCommands[hardCodedConfigIndex], strlen(hardCodedConfigCommands[hardCodedConfigIndex]));
+            
+            hardCodedConfigIndex++;
 
-        /* Read the command message from the UART: */
-        UART_read (gCLI.cfg.cliUartHandle, &cmdString[0], (sizeof(cmdString) - 1));
+        }
+        else
+        {
+            /* Read the command message from the UART: */
+            UART_read (gCLI.cfg.cliUartHandle, &cmdString[0], (sizeof(cmdString) - 1));
+        }
+
+        /* Reset the command string: */
+        // memset ((void *)&cmdString[0], 0, sizeof(cmdString));
+
+        // /* Read the command message from the UART: */
+        // UART_read (gCLI.cfg.cliUartHandle, &cmdString[0], (sizeof(cmdString) - 1));
 
         /* Reset all the tokenized arguments: */
         memset ((void *)&tokenizedArgs, 0, sizeof(tokenizedArgs));
